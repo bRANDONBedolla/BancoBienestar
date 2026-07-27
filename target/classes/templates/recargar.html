@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout :: layout(title='Recargar dinero', content=~{::section})}">
+<body>
+<section>
+    <div class="card border-0 shadow-sm rounded-4 p-4 mb-3">
+        <div class="d-flex align-items-center gap-2 mb-4">
+            <i class="bi bi-wallet-fill fs-4 text-primary"></i>
+            <h2 class="h4 fw-bold text-dark mb-0">Recargar dinero</h2>
+        </div>
+
+        <p class="text-muted mb-4">
+            Saldo disponible: <span class="fw-bold text-success">$<span th:text="${saldoPropio}">0.00</span> MXN</span>
+            <span class="ms-2 text-muted small" th:if="${cuentaClabePropia != null}">
+                (Tu CLABE: <span th:text="${cuentaClabePropia}">-</span>)
+            </span>
+        </p>
+
+        <div class="alert alert-success" th:if="${exito}" th:text="${exito}">Éxito</div>
+        <div class="alert alert-danger" th:if="${error}" th:text="${error}">Error</div>
+
+        <form th:action="@{/recargar}" method="post" novalidate>
+            <div class="mb-3">
+                <label class="form-label d-block">Método de recarga</label>
+                <div class="row g-2">
+                    <div class="col-6 col-md-3">
+                        <input type="radio" class="btn-check" name="metodo" id="metodoTarjeta" value="TARJETA" autocomplete="off" checked>
+                        <label class="btn btn-outline-primary w-100 rounded-3" for="metodoTarjeta">
+                            <i class="bi bi-credit-card-fill d-block fs-4 mb-1"></i>
+                            Tarjeta
+                        </label>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <input type="radio" class="btn-check" name="metodo" id="metodoOxxo" value="OXXO" autocomplete="off">
+                        <label class="btn btn-outline-primary w-100 rounded-3" for="metodoOxxo">
+                            <i class="bi bi-shop d-block fs-4 mb-1"></i>
+                            OXXO
+                        </label>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <input type="radio" class="btn-check" name="metodo" id="metodoSucursal" value="SUCURSAL" autocomplete="off">
+                        <label class="btn btn-outline-primary w-100 rounded-3" for="metodoSucursal">
+                            <i class="bi bi-bank d-block fs-4 mb-1"></i>
+                            Sucursal
+                        </label>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <input type="radio" class="btn-check" name="metodo" id="metodoSpei" value="SPEI" autocomplete="off">
+                        <label class="btn btn-outline-primary w-100 rounded-3" for="metodoSpei">
+                            <i class="bi bi-arrow-left-right d-block fs-4 mb-1"></i>
+                            SPEI
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label for="monto" class="form-label">Monto a recargar</label>
+                <div class="input-group">
+                    <span class="input-group-text">$</span>
+                    <input type="number" id="monto" name="monto" class="form-control"
+                           placeholder="0.00" min="0.01" step="0.01" max="10000" required>
+                    <span class="input-group-text">MXN</span>
+                </div>
+                <div class="form-text">Monto máximo por recarga: $10,000.00 MXN</div>
+            </div>
+
+            <div class="mb-4">
+                <label for="referencia" class="form-label">Referencia / folio (opcional)</label>
+                <input type="text" id="referencia" name="referencia" class="form-control"
+                       maxlength="40" placeholder="Ej. Folio de pago en OXXO">
+            </div>
+
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-wallet-fill me-1"></i> Recargar saldo
+            </button>
+        </form>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4 p-4" th:if="${historialRecargas != null}">
+        <h3 class="h6 fw-bold text-dark text-uppercase mb-3">
+            <i class="bi bi-clock-history me-1 text-primary"></i> Mis recargas recientes
+        </h3>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                    <tr class="text-muted small text-uppercase">
+                        <th scope="col">Fecha</th>
+                        <th scope="col">Detalle</th>
+                        <th scope="col" class="text-center">Estado</th>
+                        <th scope="col" class="text-end">Monto</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="m : ${historialRecargas}">
+                        <td class="text-muted small" th:text="${#temporals.format(m.fecha, 'dd/MM/yyyy HH:mm')}">-</td>
+                        <td th:text="${m.descripcion}">-</td>
+                        <td class="text-center">
+                            <span class="badge rounded-pill text-bg-success" th:text="${m.estadoMovimiento}">Completado</span>
+                        </td>
+                        <td class="text-end fw-semibold text-success"
+                            th:text="'+$' + ${#numbers.formatDecimal(m.monto, 1, 'POINT', 2, 'COMMA')}">
+                            $0.00
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(historialRecargas)}">
+                        <td colspan="4" class="text-center text-muted small py-4">
+                            Aún no tienes recargas registradas.
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+</body>
+</html>

@@ -1,0 +1,123 @@
+/* ============================================================
+   app.css — Estilos globales de Banco Bienestar
+   Variables de marca, sidebar y estructura base del layout.
+   ============================================================ */
+
+:root {
+    --bienestar-navy: #14213d;
+    --bienestar-navy-light: #1a2c52;
+    --bienestar-cyan: #17c3d6;
+}
+
+body {
+    background-color: #f4f6f9;
+    font-family: 'Inter', sans-serif;
+}
+
+/* ===== Sidebar ===== */
+#sidebar {
+    width: 260px;
+    min-height: 100vh;
+    background: linear-gradient(180deg, var(--bienestar-navy) 0%, var(--bienestar-navy-light) 100%);
+    position: sticky;
+    top: 0;
+}
+
+#sidebar .navbar-brand {
+    color: #fff;
+    font-weight: 800;
+    font-size: 1.15rem;
+    text-decoration: none;
+}
+
+#sidebar .navbar-brand .brand-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: .6rem;
+    background: var(--bienestar-cyan);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    color: var(--bienestar-navy);
+}
+
+#sidebar .nav-section-title {
+    color: rgba(255, 255, 255, .35);
+    font-size: .68rem;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    font-weight: 700;
+    padding: 0 .75rem;
+    margin-bottom: .5rem;
+}
+
+#sidebar .nav-link {
+    color: #b9c2d4;
+    padding: .65rem .9rem;
+    border-radius: .55rem;
+    margin-bottom: .3rem;
+    font-size: .92rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: .65rem;
+    transition: background-color .15s ease, color .15s ease;
+}
+
+#sidebar .nav-link i {
+    font-size: 1.05rem;
+    width: 1.2rem;
+    text-align: center;
+}
+
+#sidebar .nav-link:hover {
+    background-color: rgba(255, 255, 255, .07);
+    color: #fff;
+}
+
+#sidebar .nav-link.activo {
+    background-color: var(--bienestar-cyan);
+    color: var(--bienestar-navy);
+    font-weight: 700;
+}
+
+#sidebar .nav-link.text-warning-custom { color: #f5a623; }
+#sidebar .nav-link.text-warning-custom:hover { color: #ffc966; }
+
+#sidebar hr { border-color: rgba(255, 255, 255, .1); }
+
+.avatar-circle {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: var(--bienestar-cyan);
+    color: var(--bienestar-navy);
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    text-transform: uppercase;
+}
+
+.badge-rol {
+    background-color: rgba(255, 255, 255, .12);
+    color: #fff;
+    font-weight: 600;
+    font-size: .65rem;
+    letter-spacing: .04em;
+}
+
+/* ===== Contenido ===== */
+#content-wrapper {
+    flex: 1;
+    min-height: 100vh;
+}
+
+footer { border-top: 1px solid #e5e9f0; }
+
+/* ===== Tarjetas de "en construcción" (transferir / crédito) ===== */
+.card-form {
+    border-radius: 1rem;
+}

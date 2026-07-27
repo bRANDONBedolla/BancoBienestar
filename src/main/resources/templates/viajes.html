@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout :: layout(title='Viajes y Eventos', content=~{::section})}">
+<body>
+<section>
+    <div class="card border-0 shadow-sm rounded-4 p-4 mb-3">
+        <div class="d-flex align-items-center gap-2 mb-2">
+            <i class="bi bi-airplane-fill fs-4 text-primary"></i>
+            <h2 class="h4 fw-bold text-dark mb-0">Viajes y eventos</h2>
+        </div>
+        <p class="text-muted mb-0">
+            Saldo disponible: <span class="fw-bold text-success">$<span th:text="${saldoPropio}">0.00</span> MXN</span>
+        </p>
+    </div>
+
+    <div class="alert alert-success" th:if="${exito}" th:text="${exito}">Éxito</div>
+    <div class="alert alert-danger" th:if="${error}" th:text="${error}">Error</div>
+
+    <!-- Vuelos -->
+    <div class="card border-0 shadow-sm rounded-4 p-4 mb-3">
+        <h3 class="h6 fw-bold text-dark text-uppercase mb-3">
+            <i class="bi bi-airplane-fill me-1 text-primary"></i> Vuelos
+        </h3>
+        <div class="row g-3">
+            <div class="col-md-4" th:each="v : ${vuelos}">
+                <div class="border rounded-4 p-3 h-100 d-flex flex-column justify-content-between">
+                    <div>
+                        <p class="fw-semibold mb-1" th:text="${v.detalle}">Destino</p>
+                        <p class="text-success fw-bold mb-3">$<span th:text="${v.precioTexto}">0.00</span> MXN</p>
+                    </div>
+                    <form th:action="@{/viajes/comprar}" method="post" class="m-0">
+                        <input type="hidden" name="itemId" th:value="${v.id}">
+                        <button type="submit" class="btn btn-sm btn-primary w-100">
+                            <i class="bi bi-cart-check-fill me-1"></i> Comprar
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Camionera -->
+    <div class="card border-0 shadow-sm rounded-4 p-4 mb-3">
+        <h3 class="h6 fw-bold text-dark text-uppercase mb-3">
+            <i class="bi bi-bus-front-fill me-1 text-primary"></i> Central camionera
+        </h3>
+        <div class="row g-3">
+            <div class="col-md-4" th:each="b : ${camiones}">
+                <div class="border rounded-4 p-3 h-100 d-flex flex-column justify-content-between">
+                    <div>
+                        <p class="fw-semibold mb-1" th:text="${b.detalle}">Destino</p>
+                        <p class="text-success fw-bold mb-3">$<span th:text="${b.precioTexto}">0.00</span> MXN</p>
+                    </div>
+                    <form th:action="@{/viajes/comprar}" method="post" class="m-0">
+                        <input type="hidden" name="itemId" th:value="${b.id}">
+                        <button type="submit" class="btn btn-sm btn-primary w-100">
+                            <i class="bi bi-cart-check-fill me-1"></i> Comprar
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hoteles -->
+    <div class="card border-0 shadow-sm rounded-4 p-4 mb-3">
+        <h3 class="h6 fw-bold text-dark text-uppercase mb-3">
+            <i class="bi bi-building-fill me-1 text-primary"></i> Hoteles
+        </h3>
+        <div class="row g-3">
+            <div class="col-md-4" th:each="h : ${hoteles}">
+                <div class="border rounded-4 p-3 h-100 d-flex flex-column justify-content-between">
+                    <div>
+                        <p class="fw-semibold mb-1" th:text="${h.detalle}">Hotel</p>
+                        <p class="text-success fw-bold mb-3">$<span th:text="${h.precioTexto}">0.00</span> MXN</p>
+                    </div>
+                    <form th:action="@{/viajes/comprar}" method="post" class="m-0">
+                        <input type="hidden" name="itemId" th:value="${h.id}">
+                        <button type="submit" class="btn btn-sm btn-primary w-100">
+                            <i class="bi bi-cart-check-fill me-1"></i> Reservar
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Eventos -->
+    <div class="card border-0 shadow-sm rounded-4 p-4">
+        <h3 class="h6 fw-bold text-dark text-uppercase mb-3">
+            <i class="bi bi-ticket-perforated-fill me-1 text-primary"></i> Eventos (Mundial &amp; FENAPO)
+        </h3>
+        <div class="row g-3">
+            <div class="col-md-4" th:each="e : ${eventos}">
+                <div class="border rounded-4 p-3 h-100 d-flex flex-column justify-content-between">
+                    <div>
+                        <p class="fw-semibold mb-1" th:text="${e.detalle}">Evento</p>
+                        <p class="text-success fw-bold mb-3">$<span th:text="${e.precioTexto}">0.00</span> MXN</p>
+                    </div>
+                    <form th:action="@{/viajes/comprar}" method="post" class="m-0">
+                        <input type="hidden" name="itemId" th:value="${e.id}">
+                        <button type="submit" class="btn btn-sm btn-primary w-100">
+                            <i class="bi bi-cart-check-fill me-1"></i> Comprar boleto
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Compras recientes -->
+    <div class="card border-0 shadow-sm rounded-4 p-4 mt-3" th:if="${historialViajes != null}">
+        <h3 class="h6 fw-bold text-dark text-uppercase mb-3">
+            <i class="bi bi-clock-history me-1 text-primary"></i> Compras recientes
+        </h3>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                    <tr class="text-muted small text-uppercase">
+                        <th scope="col">Fecha</th>
+                        <th scope="col">Detalle</th>
+                        <th scope="col" class="text-center">Estado</th>
+                        <th scope="col" class="text-end">Monto</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="c : ${historialViajes}">
+                        <td class="text-muted small" th:text="${#temporals.format(c.fecha, 'dd/MM/yyyy HH:mm')}">-</td>
+                        <td th:text="${c.descripcion}">-</td>
+                        <td class="text-center">
+                            <span class="badge rounded-pill"
+                                  th:classappend="${c.estadoMovimiento == 'Cancelada'} ? 'text-bg-danger' : 'text-bg-success'"
+                                  th:text="${c.estadoMovimiento}">Completado</span>
+                        </td>
+                        <td class="text-end fw-semibold"
+                            th:classappend="${c.estadoMovimiento == 'Cancelada'} ? 'text-muted text-decoration-line-through' : 'text-danger'"
+                            th:text="'-$' + ${#numbers.formatDecimal(c.monto, 1, 'POINT', 2, 'COMMA')}">$0.00</td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(historialViajes)}">
+                        <td colspan="4" class="text-center text-muted small py-4">
+                            Aún no has comprado ningún vuelo, camión, hotel o boleto.
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+</body>
+</html>

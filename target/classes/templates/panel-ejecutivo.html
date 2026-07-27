@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout :: layout(title='Panel Ejecutivo', content=~{::section})}">
+<body>
+<section>
+    <div class="card border-0 shadow-sm rounded-4 p-4 mb-3">
+        <div class="d-flex align-items-center gap-2 mb-1">
+            <i class="bi bi-person-badge-fill fs-4 text-warning"></i>
+            <h2 class="h4 fw-bold text-dark mb-0">Panel ejecutivo</h2>
+        </div>
+        <p class="text-muted mb-4">
+            Bienvenido, <span class="fw-semibold text-dark" th:text="${nombreAdmin}">Admin</span>
+        </p>
+
+        <div class="alert alert-success py-2 d-flex align-items-center gap-2" th:if="${exitoCliente}" role="alert">
+            <i class="bi bi-check-circle-fill"></i>
+            <span th:text="${exitoCliente}">Cliente creado</span>
+        </div>
+        <div class="alert alert-danger py-2 d-flex align-items-center gap-2" th:if="${errorCliente}" role="alert">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <span th:text="${errorCliente}">Error</span>
+        </div>
+        <div class="alert alert-success py-2 d-flex align-items-center gap-2" th:if="${exitoPerfil}" role="alert">
+            <i class="bi bi-check-circle-fill"></i>
+            <span th:text="${exitoPerfil}">Perfil actualizado</span>
+        </div>
+        <div class="alert alert-danger py-2 d-flex align-items-center gap-2" th:if="${errorPerfil}" role="alert">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <span th:text="${errorPerfil}">Error</span>
+        </div>
+
+        <a th:href="@{/panel-ejecutivo/movimientos}" class="btn btn-outline-primary btn-sm mb-2">
+            <i class="bi bi-arrow-left-right me-1"></i> Ir a movimientos del ejecutivo
+        </a>
+
+        <div class="row g-3">
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm h-100 p-3">
+                    <h3 class="h6 text-uppercase text-muted mb-1">Usuarios registrados</h3>
+                    <p class="display-6 fw-bold text-primary mb-0" th:text="${totalUsuarios}">0</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm h-100 p-3">
+                    <h3 class="h6 text-uppercase text-muted mb-1">Solicitudes totales</h3>
+                    <p class="display-6 fw-bold text-dark mb-0" th:text="${totalSolicitudes}">0</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm h-100 p-3">
+                    <h3 class="h6 text-uppercase text-muted mb-1">Pendientes</h3>
+                    <p class="display-6 fw-bold text-warning mb-0" th:text="${solicitudesPendientes}">0</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm h-100 p-3">
+                    <h3 class="h6 text-uppercase text-muted mb-1">Aprobadas</h3>
+                    <p class="display-6 fw-bold text-success mb-0" th:text="${solicitudesAprobadas}">0</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4 p-4 mb-3">
+        <h3 class="h6 fw-bold text-dark text-uppercase mb-3">
+            <i class="bi bi-wallet2 me-1 text-primary"></i> Cartera de clientes activos
+        </h3>
+        <p class="text-muted small mb-3">
+            <i class="bi bi-info-circle-fill me-1"></i> El alta de nuevos clientes se hace desde el
+            <a th:href="@{/dashboard}" class="link-primary text-decoration-none fw-semibold">Dashboard</a>.
+        </p>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                    <tr class="text-muted small text-uppercase">
+                        <th scope="col">Usuario</th>
+                        <th scope="col">Cuenta CLABE</th>
+                        <th scope="col" class="text-end">Saldo actual</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="cliente : ${clientesRegistrados}">
+                        <td class="fw-semibold" th:text="${cliente.username}">usuario</td>
+                        <td class="text-muted small" th:text="${cliente.clabe}">-</td>
+                        <td class="text-end fw-semibold text-success" th:text="'$' + ${cliente.saldoTexto}">$0.00</td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(clientesRegistrados)}">
+                        <td colspan="3" class="text-center text-muted small py-4">
+                            Aún no hay clientes activos.
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4 p-4 mb-3">
+        <h3 class="h6 fw-bold text-dark text-uppercase mb-3">
+            <i class="bi bi-people-fill me-1 text-primary"></i> Clientes registrados
+            <span class="badge rounded-pill text-bg-primary ms-2" th:text="${totalClientesRegistrados}">0</span>
+        </h3>
+
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                    <tr class="text-muted small text-uppercase">
+                        <th scope="col">Foto</th>
+                        <th scope="col">Nombre</th>
+                        <th scope="col">Usuario</th>
+                        <th scope="col">Profesión</th>
+                        <th scope="col">CLABE</th>
+                        <th scope="col" class="text-end">Saldo</th>
+                        <th scope="col">Fecha de registro</th>
+                        <th scope="col" class="text-end">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="cliente : ${clientesRegistrados}">
+                        <td>
+                            <img th:if="${cliente.fotoBase64 != null}" th:src="${cliente.fotoBase64}"
+                                 class="rounded-circle" style="width:40px;height:40px;object-fit:cover;" alt="Foto">
+                            <i th:unless="${cliente.fotoBase64 != null}"
+                               class="bi bi-person-circle text-muted fs-3"></i>
+                        </td>
+                        <td class="fw-semibold" th:text="${cliente.nombre}">Cliente</td>
+                        <td class="text-muted small" th:text="${cliente.username}">usuario</td>
+                        <td class="text-muted small" th:text="${cliente.profesion} ?: '—'">Profesión</td>
+                        <td class="text-muted small" th:text="${cliente.clabe}">-</td>
+                        <td class="text-end fw-semibold" th:text="'$' + ${cliente.saldoTexto}">$0.00</td>
+                        <td class="text-muted small" th:text="${cliente.fechaRegistro}">-</td>
+                        <td class="text-end">
+                            <a th:href="@{'/panel-ejecutivo/clientes/' + ${cliente.id} + '/editar'}"
+                               class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-pencil-square"></i> Editar
+                            </a>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(clientesRegistrados)}">
+                        <td colspan="8" class="text-center text-muted small py-4">
+                            Aún no hay clientes registrados.
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4 p-4">
+        <h3 class="h6 fw-bold text-dark text-uppercase mb-3">
+            <i class="bi bi-credit-card-2-front-fill me-1 text-primary"></i> Solicitudes de crédito
+        </h3>
+
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                    <tr class="text-muted small text-uppercase">
+                        <th scope="col">Cliente</th>
+                        <th scope="col">Fecha</th>
+                        <th scope="col" class="text-end">Monto solicitado</th>
+                        <th scope="col" class="text-center">Firma</th>
+                        <th scope="col" class="text-center">Estado</th>
+                        <th scope="col" class="text-end">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="solicitud : ${solicitudes}">
+                        <td class="fw-semibold" th:text="${solicitud.nombreCliente}">Cliente</td>
+                        <td class="text-muted small" th:text="${solicitud.fechaTexto}">01/01/2026</td>
+                        <td class="text-end fw-semibold" th:text="'$' + ${solicitud.montoTexto}">$0.00</td>
+                        <td class="text-center">
+                            <a th:if="${solicitud.firma != null}" th:href="${solicitud.firma}" target="_blank" title="Ver firma completa">
+                                <img th:src="${solicitud.firma}" alt="Firma"
+                                     style="max-height:36px; max-width:80px; border:1px solid #dee2e6; border-radius:4px; background:#fff;">
+                            </a>
+                            <span th:if="${solicitud.firma == null}" class="text-muted small">—</span>
+                        </td>
+                        <td class="text-center">
+                            <span class="badge rounded-pill px-3 py-2"
+                                  th:classappend="${solicitud.estado == 'PENDIENTE'} ? 'text-bg-warning' : (${solicitud.estado == 'APROBADA'} ? 'text-bg-success' : (${solicitud.estado == 'CANCELADA'} ? 'text-bg-secondary' : 'text-bg-danger'))"
+                                  th:text="${solicitud.estado}">PENDIENTE</span>
+                        </td>
+                        <td class="text-end">
+                            <div th:if="${solicitud.estado == 'PENDIENTE'}" class="d-flex flex-column align-items-end gap-2">
+                                <textarea class="form-control form-control-sm" rows="1" style="max-width:220px;"
+                                          placeholder="Observación (opcional)" th:id="'obs-' + ${solicitud.id}"></textarea>
+                                <div class="d-flex gap-2">
+                                    <form th:action="@{'/panel-ejecutivo/solicitudes/' + ${solicitud.id} + '/aprobar'}"
+                                          th:id="'aprobar-' + ${solicitud.id}" method="post" class="m-0"
+                                          th:onsubmit="'return copiarObservacion(this, ' + ${solicitud.id} + ');'">
+                                        <input type="hidden" name="observaciones" value="">
+                                        <button type="submit" class="btn btn-sm btn-success">
+                                            <i class="bi bi-check-lg"></i> Aprobar
+                                        </button>
+                                    </form>
+                                    <form th:action="@{'/panel-ejecutivo/solicitudes/' + ${solicitud.id} + '/rechazar'}"
+                                          th:id="'rechazar-' + ${solicitud.id}" method="post" class="m-0"
+                                          th:onsubmit="'return copiarObservacion(this, ' + ${solicitud.id} + ');'">
+                                        <input type="hidden" name="observaciones" value="">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                                            <i class="bi bi-x-lg"></i> Rechazar
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+
+                            <div th:unless="${solicitud.estado == 'PENDIENTE'}" class="text-end">
+                                <div class="small text-muted mb-1">
+                                    <i class="bi bi-person-check-fill me-1"></i><span th:text="${solicitud.ejecutivoAutorizo} ?: 'N/A'">Ejecutivo</span><br>
+                                    <span th:text="${solicitud.fechaAprobacionTexto} ?: ''"></span>
+                                    <span th:if="${solicitud.fechaPrimerPagoTexto != null}">
+                                        · 1er pago: <span th:text="${solicitud.fechaPrimerPagoTexto}"></span>
+                                    </span>
+                                    <div th:if="${solicitud.observaciones != null and !#strings.isEmpty(solicitud.observaciones)}"
+                                         class="fst-italic" th:text="'“' + ${solicitud.observaciones} + '”'"></div>
+                                    <div th:if="${solicitud.estado == 'CANCELADA'}" class="text-danger fst-italic mt-1">
+                                        Cancelado por <span th:text="${solicitud.canceladoPor} ?: 'N/A'"></span>
+                                        <span th:if="${solicitud.fechaCancelacionTexto != null}"
+                                              th:text="' · ' + ${solicitud.fechaCancelacionTexto}"></span>
+                                    </div>
+                                    <div th:if="${solicitud.montoPagadoTexto != null}" class="mt-1">
+                                        <span class="badge text-bg-light border">
+                                            Pagado: $<span th:text="${solicitud.montoPagadoTexto}"></span>
+                                            · Pendiente: $<span th:text="${solicitud.saldoPendienteTexto}"></span>
+                                        </span>
+                                        <span th:if="${solicitud.fechaProximoPagoTexto != null}" class="text-muted d-block">
+                                            Próximo pago: <span th:text="${solicitud.fechaProximoPagoTexto}"></span>
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div class="d-flex gap-2 justify-content-end flex-wrap">
+                                    <a th:href="@{'/panel-ejecutivo/solicitudes/' + ${solicitud.id} + '/pdf'}" target="_blank"
+                                       class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-file-earmark-pdf-fill"></i> PDF
+                                    </a>
+
+                                    <form th:if="${solicitud.estado == 'APROBADA'}"
+                                          th:action="@{'/panel-ejecutivo/solicitudes/' + ${solicitud.id} + '/cancelar'}"
+                                          method="post" class="m-0"
+                                          onsubmit="return confirm('¿Cancelar este crédito? Se le retirará el monto abonado al cliente.');">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Cancelar crédito y retirar el abono">
+                                            <i class="bi bi-x-lg"></i> Cancelar
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(solicitudes)}">
+                        <td colspan="6" class="text-center text-muted small py-4">
+                            Aún no hay solicitudes de crédito registradas.
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <script th:inline="none">
+            // Copia el texto del textarea de observación al input oculto justo antes de enviar
+            // el formulario de aprobar/rechazar correspondiente a esa solicitud.
+            function copiarObservacion(form, idSolicitud) {
+                const textarea = document.getElementById('obs-' + idSolicitud);
+                const inputOculto = form.querySelector('input[name="observaciones"]');
+                if (textarea && inputOculto) {
+                    inputOculto.value = textarea.value;
+                }
+                return true;
+            }
+        </script>
+
+        <p class="text-muted small mt-4 mb-0">
+            <i class="bi bi-shield-lock-fill me-1"></i> Solo visible para el rol ADMIN.
+        </p>
+    </div>
+</section>
+</body>
+</html>

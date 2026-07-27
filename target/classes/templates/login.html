@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iniciar sesión | Banco Bienestar</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+</head>
+<body class="bg-light d-flex align-items-center" style="min-height: 100vh;">
+<main class="container">
+    <div class="row justify-content-center">
+        <div class="col-11 col-sm-8 col-md-5 col-lg-4">
+            <div class="card shadow-sm border-0 rounded-4">
+                <div class="card-body p-4 p-md-5">
+                    <div class="text-center mb-4">
+                        <i class="bi bi-bank2 fs-1 text-primary"></i>
+                        <h1 class="h4 fw-bold text-primary mt-2 mb-0">Banco Bienestar</h1>
+                        <p class="text-muted small mb-0">Ingresa con tu cuenta para continuar</p>
+                    </div>
+
+                    <div class="alert alert-danger py-2 d-flex align-items-center gap-2" th:if="${param.error}" role="alert">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                        <span>Usuario o contraseña incorrectos.</span>
+                    </div>
+                    <div class="alert alert-success py-2 d-flex align-items-center gap-2" th:if="${param.logout}" role="alert">
+                        <i class="bi bi-check-circle-fill"></i>
+                        <span>Sesión cerrada correctamente.</span>
+                    </div>
+                    <div class="alert alert-success py-2 d-flex align-items-center gap-2" th:if="${param.registrado}" role="alert">
+                        <i class="bi bi-check-circle-fill"></i>
+                        <span>Cuenta creada correctamente. Ya puedes iniciar sesión.</span>
+                    </div>
+
+                    <form th:action="@{/login}" method="post" novalidate>
+                        <div class="mb-3">
+                            <label for="username" class="form-label">Usuario</label>
+                            <input type="text" id="username" name="username" class="form-control"
+                                   autocomplete="username" required autofocus>
+                        </div>
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Contraseña</label>
+                            <input type="password" id="password" name="password" class="form-control"
+                                   autocomplete="current-password" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="bi bi-box-arrow-in-right me-1"></i> Entrar
+                        </button>
+                    </form>
+
+                    <p class="text-center small text-muted mt-3 mb-0">
+                        ¿Aún no tienes cuenta? Pídele a tu ejecutivo bancario que la registre por ti.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+</body>
+</html>

@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="es"
+      xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout :: layout(title='Dashboard', content=~{::section})}">
+
+<body>
+
+<section>
+
+    <!-- ================= HEADER ================= -->
+    <div class="card border-0 shadow-sm mb-3">
+        <div class="card-body d-flex justify-content-between align-items-center">
+
+            <h4 class="fw-bold text-primary mb-0">
+                <i class="bi bi-speedometer2 me-2"></i>
+                Bienvenido, <span th:text="${nombreUsuario}">Usuario</span>
+            </h4>
+
+            <div class="text-end">
+                <span class="badge bg-primary" th:text="${rolUsuario == 'ADMIN'} ? 'EJECUTIVO' : ${rolUsuario}">
+                    ROL
+                </span>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ================= CUENTA PERSONAL (cliente Y ejecutivo) ================= -->
+    <div class="row g-3 mb-3">
+        <div class="col-md-8">
+            <div class="card border-0 shadow-lg h-100">
+                <div class="card-body">
+
+                    <p class="text-muted mb-1">Saldo disponible</p>
+
+                    <h2 class="text-success fw-bold">
+                        $<span th:text="${saldoTotal}">0.00</span> MXN
+                    </h2>
+
+                    <p class="text-muted mb-0"
+                       th:text="'CLABE: ' + ${cuentaClabe}">
+                        CLABE
+                    </p>
+
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body d-flex flex-column gap-2 justify-content-center">
+                    <a th:href="@{/recargar}" class="btn btn-primary">
+                        <i class="bi bi-wallet-fill me-1"></i> Recargar dinero
+                    </a>
+                    <a th:href="@{/transferencias}" class="btn btn-outline-primary">
+                        <i class="bi bi-send-fill me-1"></i> Transferir dinero
+                    </a>
+                    <a th:href="@{/pagar-servicio}" class="btn btn-outline-primary">
+                        <i class="bi bi-lightning-charge-fill me-1"></i> Pagar servicio
+                    </a>
+                    <a th:href="@{/viajes}" class="btn btn-outline-primary">
+                        <i class="bi bi-airplane-fill me-1"></i> Viajes y eventos
+                    </a>
+                    <a th:href="@{/solicitar-credito}" class="btn btn-outline-secondary">
+                        <i class="bi bi-credit-card-fill me-1"></i> Solicitar crédito
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-3">
+        <div class="col-md-6">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body text-center">
+                    <h6 class="text-muted">Ingresos recientes</h6>
+                    <h4 class="text-success" th:text="'$' + ${totalIngresos}">$0</h4>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body text-center">
+                    <h6 class="text-muted">Gastos recientes</h6>
+                    <h4 class="text-danger" th:text="'$' + ${totalGastos}">$0</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gráfica de pastel + movimientos -->
+    <div class="row g-3 mb-3">
+        <div class="col-md-5">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <h5 class="fw-bold text-primary mb-3">
+                        <i class="bi bi-pie-chart-fill me-2"></i>
+                        Gastos por categoría
+                    </h5>
+
+                    <div th:if="${pieTieneDatos}">
+                        <canvas id="graficaPastel" style="max-height: 260px;"></canvas>
+                    </div>
+                    <p class="text-muted small text-center py-4" th:unless="${pieTieneDatos}">
+                        Aún no tienes gastos registrados para mostrar la gráfica.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-7">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <h5 class="fw-bold text-primary mb-3">
+                        <i class="bi bi-clock-history me-2"></i>
+                        Movimientos recientes
+                    </h5>
+
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead>
+                                <tr class="text-muted small text-uppercase">
+                                    <th>Fecha</th>
+                                    <th>Descripción</th>
+                                    <th class="text-end">Monto</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="m : ${movimientos}">
+                                    <td class="text-muted small" th:text="${m.fecha}">-</td>
+                                    <td th:text="${m.descripcion}">-</td>
+                                    <td class="text-end fw-semibold"
+                                        th:classappend="${m.monto < 0} ? 'text-danger' : 'text-success'"
+                                        th:text="(${m.monto < 0} ? '-$' : '+$') + ${#numbers.formatDecimal(T(java.lang.Math).abs(m.monto), 1, 'POINT', 2, 'COMMA')}">
+                                        $0.00
+                                    </td>
+                                </tr>
+                                <tr th:if="${#lists.isEmpty(movimientos)}">
+                                    <td colspan="3" class="text-center text-muted small py-4">
+                                        Aún no tienes movimientos registrados.
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= MIS CRÉDITOS ACTIVOS (cliente o ejecutivo) ================= -->
+    <div class="row g-3 mb-3" th:if="${misCreditosActivos != null and !#lists.isEmpty(misCreditosActivos)}">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="fw-bold text-primary mb-0">
+                            <i class="bi bi-credit-card-2-front-fill me-2"></i>
+                            Mis créditos
+                        </h5>
+                        <a th:href="@{/solicitar-credito}" class="btn btn-sm btn-outline-success">
+                            <i class="bi bi-cash-coin me-1"></i> Ir a pagar
+                        </a>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead>
+                                <tr class="text-muted small text-uppercase">
+                                    <th>Folio</th>
+                                    <th class="text-end">Monto original</th>
+                                    <th class="text-end">Pagado</th>
+                                    <th class="text-end">Pendiente</th>
+                                    <th class="text-center">Próximo pago</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="c : ${misCreditosActivos}">
+                                    <td class="text-muted small" th:text="'#' + ${c.id}">#1</td>
+                                    <td class="text-end" th:text="'$' + ${c.montoTexto}">$0.00</td>
+                                    <td class="text-end text-success fw-semibold" th:text="'$' + ${c.pagadoTexto}">$0.00</td>
+                                    <td class="text-end fw-semibold" th:text="'$' + ${c.pendienteTexto}">$0.00</td>
+                                    <td class="text-center text-muted small" th:text="${c.fechaProximoPagoTexto}">N/A</td>
+                                    <td class="text-end">
+                                        <a th:href="@{/solicitar-credito}" class="btn btn-sm btn-success">
+                                            <i class="bi bi-cash-coin me-1"></i> Pagar
+                                        </a>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= EJECUTIVO (ADMIN) — datos de todos los clientes ================= -->
+    <div th:if="${rolUsuario == 'ADMIN'}">
+
+        <div class="alert alert-success py-2 d-flex align-items-center gap-2" th:if="${exitoCliente}" role="alert">
+            <i class="bi bi-check-circle-fill"></i>
+            <span th:text="${exitoCliente}">Cliente creado</span>
+        </div>
+        <div class="alert alert-danger py-2 d-flex align-items-center gap-2" th:if="${errorCliente}" role="alert">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <span th:text="${errorCliente}">Error</span>
+        </div>
+
+        <!-- KPIs -->
+        <div class="row g-3 mb-3">
+
+            <div class="col-md-3">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-body text-center">
+                        <h6 class="text-muted">Clientes</h6>
+                        <h4 class="text-primary" th:text="${totalClientes}">0</h4>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-body text-center">
+                        <h6 class="text-muted">Dinero total en cuentas</h6>
+                        <h4 class="text-success" th:text="'$' + ${saldoTotalBanco}">$0</h4>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-body text-center">
+                        <h6 class="text-muted">Créditos pendientes</h6>
+                        <h4 class="text-warning" th:text="${solicitudesPendientesDashboard}">0</h4>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="card shadow-sm border-0 h-100 d-flex align-items-center justify-content-center">
+                    <a th:href="@{/panel-ejecutivo}" class="btn btn-primary m-3">
+                        <i class="bi bi-person-badge-fill me-1"></i> Panel completo
+                    </a>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Registrar nuevo cliente + cartera activa -->
+        <div class="card border-0 shadow-sm mb-3">
+            <div class="card-body">
+                <div class="row g-4">
+                    <div class="col-lg-5">
+                        <h5 class="fw-bold text-primary mb-2">
+                            <i class="bi bi-person-plus-fill me-2"></i>
+                            Registrar nuevo cliente
+                        </h5>
+                        <p class="text-muted small mb-3">
+                            <i class="bi bi-shield-lock-fill me-1"></i> Solo el ejecutivo puede dar de alta clientes y aperturar su cuenta.
+                        </p>
+                        <form th:action="@{/panel-ejecutivo/clientes}" method="post" novalidate>
+                            <div class="mb-3">
+                                <label for="nombre" class="form-label small fw-semibold">Nombre completo</label>
+                                <input type="text" id="nombre" name="nombre" class="form-control"
+                                       placeholder="Ej. Juan Pérez López" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="username" class="form-label small fw-semibold">Nombre de usuario (login)</label>
+                                <input type="text" id="username" name="username" class="form-control"
+                                       placeholder="Ej. cliente3" autocomplete="off" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="password" class="form-label small fw-semibold">Contraseña temporal</label>
+                                <input type="password" id="password" name="password" class="form-control"
+                                       autocomplete="new-password" minlength="6" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="saldoInicial" class="form-label small fw-semibold">Monto de apertura (saldo inicial)</label>
+                                <input type="number" id="saldoInicial" name="saldoInicial" class="form-control"
+                                       step="0.01" min="0" value="0.00">
+                            </div>
+                            <button type="submit" class="btn btn-warning fw-semibold w-100">
+                                <i class="bi bi-plus-circle-fill me-1"></i> Crear y aperturar cuenta
+                            </button>
+                        </form>
+                    </div>
+
+                    <div class="col-lg-7">
+                        <h5 class="fw-bold text-primary mb-2">
+                            <i class="bi bi-wallet2 me-2"></i>
+                            Cartera de clientes activos
+                        </h5>
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead>
+                                    <tr class="text-muted small text-uppercase">
+                                        <th>Usuario</th>
+                                        <th>Cuenta CLABE</th>
+                                        <th class="text-end">Saldo actual</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="c : ${clientes}">
+                                        <td class="fw-semibold" th:text="${c.username}">usuario</td>
+                                        <td class="text-muted small" th:text="${c.clabe}">-</td>
+                                        <td class="text-end fw-semibold text-success" th:text="'$' + ${c.saldoTexto}">$0.00</td>
+                                    </tr>
+                                    <tr th:if="${#lists.isEmpty(clientes)}">
+                                        <td colspan="3" class="text-center text-muted small py-4">
+                                            Aún no hay clientes activos.
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Solicitudes de crédito pendientes -->
+        <div class="card border-0 shadow-sm mb-3">
+            <div class="card-body">
+                <h5 class="fw-bold text-primary mb-3">
+                    <i class="bi bi-credit-card-2-front-fill me-2"></i>
+                    Solicitudes de crédito pendientes
+                </h5>
+
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead>
+                            <tr class="text-muted small text-uppercase">
+                                <th>Cliente</th>
+                                <th>Fecha</th>
+                                <th class="text-end">Monto solicitado</th>
+                                <th class="text-end">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="s : ${solicitudesPendientesLista}">
+                                <td class="fw-semibold" th:text="${s.nombreCliente}">Cliente</td>
+                                <td class="text-muted small" th:text="${s.fechaTexto}">01/01/2026</td>
+                                <td class="text-end fw-semibold" th:text="'$' + ${s.montoTexto}">$0.00</td>
+                                <td class="text-end">
+                                    <div class="d-flex gap-2 justify-content-end">
+                                        <form th:action="@{'/panel-ejecutivo/solicitudes/' + ${s.id} + '/aprobar'}" method="post" class="m-0">
+                                            <button type="submit" class="btn btn-sm btn-success">
+                                                <i class="bi bi-check-lg"></i> Aprobar
+                                            </button>
+                                        </form>
+                                        <form th:action="@{'/panel-ejecutivo/solicitudes/' + ${s.id} + '/rechazar'}" method="post" class="m-0">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                <i class="bi bi-x-lg"></i> Rechazar
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(solicitudesPendientesLista)}">
+                                <td colspan="4" class="text-center text-muted small py-4">
+                                    No hay solicitudes de crédito pendientes.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- Clientes y saldos -->
+        <div class="card border-0 shadow-sm mb-3">
+            <div class="card-body">
+                <h5 class="fw-bold text-primary mb-3">
+                    <i class="bi bi-people-fill me-2"></i>
+                    Clientes y su dinero
+                </h5>
+
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead>
+                            <tr class="text-muted small text-uppercase">
+                                <th>Cliente</th>
+                                <th>CLABE</th>
+                                <th class="text-end">Saldo actual</th>
+                                <th class="text-center">Crédito solicitado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="c : ${clientes}">
+                                <td class="fw-semibold" th:text="${c.nombre}">Cliente</td>
+                                <td class="text-muted small" th:text="${c.clabe}">-</td>
+                                <td class="text-end fw-semibold text-success" th:text="'$' + ${c.saldoTexto}">$0.00</td>
+                                <td class="text-center">
+                                    <span th:if="${c.montoCreditoTexto != null}">
+                                        $<span th:text="${c.montoCreditoTexto}">0.00</span>
+                                        <span class="badge rounded-pill ms-1"
+                                              th:classappend="${c.estadoCredito == 'PENDIENTE'} ? 'text-bg-warning' : (${c.estadoCredito == 'APROBADA'} ? 'text-bg-success' : 'text-bg-danger')"
+                                              th:text="${c.estadoCredito}">PENDIENTE</span>
+                                    </span>
+                                    <span th:unless="${c.montoCreditoTexto != null}" class="text-muted small">Sin solicitud</span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Movimientos globales -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <h5 class="fw-bold text-primary mb-3">
+                    <i class="bi bi-arrow-left-right me-2"></i>
+                    Movimientos recientes (todos los clientes)
+                </h5>
+
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead>
+                            <tr class="text-muted small text-uppercase">
+                                <th>Fecha</th>
+                                <th>Tipo</th>
+                                <th>De</th>
+                                <th>Para</th>
+                                <th class="text-end">Monto</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="m : ${movimientosGlobales}">
+                                <td class="text-muted small" th:text="${m.fecha}">-</td>
+                                <td><span class="badge rounded-pill text-bg-secondary" th:text="${m.tipo}">TIPO</span></td>
+                                <td th:text="${m.origen}">-</td>
+                                <td th:text="${m.destino}">-</td>
+                                <td class="text-end fw-semibold" th:text="'$' + ${m.montoTexto}">$0.00</td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(movimientosGlobales)}">
+                                <td colspan="5" class="text-center text-muted small py-4">
+                                    Aún no hay movimientos registrados en el sistema.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Chart.js solo se carga en esta página -->
+    <!-- IMPORTANTE: estos <script> deben quedar DENTRO de <section>,
+         porque el layout solo inserta el contenido de <section> (content=~{::section}).
+         Si se ponen fuera de <section>, Thymeleaf los descarta y la gráfica nunca se dibuja. -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+    <script th:inline="javascript" th:if="${pieTieneDatos}">
+        const ctx = document.getElementById('graficaPastel');
+        if (ctx) {
+            new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: ['Alimentación', 'Vivienda / Renta', 'Transporte', 'Ocio / Otros'],
+                    datasets: [{
+                        data: [
+                            /*[[${pieAlimentacion}]]*/ 0,
+                            /*[[${pieVivienda}]]*/ 0,
+                            /*[[${pieTransporte}]]*/ 0,
+                            /*[[${pieOcioOtros}]]*/ 0
+                        ],
+                        backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#8E44AD']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { position: 'bottom' }
+                    }
+                }
+            });
+        }
+    </script>
+
+</section>
+
+</body>
+</html>

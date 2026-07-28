@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout :: layout(title='Transferencias', content=~{::section})}">
+<body>
+
+<section>
+
+    <!-- Bienvenida -->
+    <div class="card border-0 shadow-lg rounded-4 p-4 mb-4 saldo-box text-white text-center">
+        <h2 class="fw-bold mb-2">
+            Bienvenido Usuario
+            <span th:text="${nombreUsuario}">Usuario</span>
+        </h2>
+
+        <p class="fs-5 mb-3">
+            Sea bienvenido a la banca móvil del Banco Bienestar
+        </p>
+
+        <p class="small opacity-75 mb-0">
+            Todos los derechos reservados Banco Bienestar S.A. de C.V.
+        </p>
+    </div>
+
+
+    <!-- Tarjeta Azul -->
+    <div class="card tarjeta-cuenta border-0 shadow-lg mb-4">
+
+        <div class="card-body text-white">
+
+            <div class="d-flex justify-content-between align-items-center">
+
+                <div>
+
+                    <small class="opacity-75">
+                        CUENTA DE ORIGEN
+                    </small>
+
+                    <h3 class="fw-bold">
+                        Banco Bienestar
+                    </h3>
+
+                </div>
+
+                <i class="bi bi-credit-card-2-front-fill fs-1"></i>
+
+            </div>
+
+            <div class="mt-4">
+
+                <small class="opacity-75">
+                    CLABE
+                </small>
+
+                <h5 class="fw-semibold"
+                    th:text="${cuentaClabePropia}">
+                    012180001234567890
+                </h5>
+
+            </div>
+
+            <div class="d-flex justify-content-between align-items-end mt-5">
+
+                <div>
+
+                    <small class="opacity-75">
+                        Saldo disponible
+                    </small>
+
+                    <h2 class="fw-bold mb-0">
+
+                        $
+
+                        <span th:text="${saldoPropio}">
+                            0.00
+                        </span>
+
+                        MXN
+
+                    </h2>
+
+                </div>
+
+                <i class="bi bi-bank2 fs-1 opacity-75"></i>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- Formulario -->
+    <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
+
+        <div class="d-flex align-items-center gap-2 mb-4">
+
+            <i class="bi bi-send-fill fs-4 text-primary"></i>
+
+            <h2 class="h4 fw-bold mb-0">
+                Transferir dinero
+            </h2>
+
+        </div>
+
+        <div class="alert alert-success"
+             th:if="${exito}"
+             th:text="${exito}">
+        </div>
+
+        <div class="alert alert-danger"
+             th:if="${error}"
+             th:text="${error}">
+        </div>
+
+        <form th:action="@{/transferencias}" method="post" onsubmit="return prepararEnvioForm();" novalidate>
+
+            <div class="mb-3">
+
+                <label class="form-label">
+                    CLABE destino
+                </label>
+
+                <input
+                        type="text"
+                        name="clabeDestino"
+                        class="form-control"
+                        maxlength="18"
+                        minlength="18"
+                        pattern="[0-9]{18}"
+                        placeholder="Ingrese la CLABE"
+                        required>
+
+            </div>
+
+            <div class="mb-3">
+
+                <label class="form-label">
+                    Monto
+                </label>
+
+                <div class="input-group">
+
+                    <span class="input-group-text">
+                        $
+                    </span>
+
+                    <input
+                            type="number"
+                            name="monto"
+                            class="form-control"
+                            min="0.01"
+                            step="0.01"
+                            placeholder="0.00"
+                            required>
+
+                    <span class="input-group-text">
+                        MXN
+                    </span>
+
+                </div>
+
+            </div>
+
+            <div class="mb-4">
+
+                <label class="form-label">
+                    Concepto
+                </label>
+
+                <input
+                        type="text"
+                        name="concepto"
+                        maxlength="40"
+                        class="form-control"
+                        placeholder="Concepto (Opcional)">
+
+            </div>
+
+            <div class="mb-4">
+
+                <label class="form-label">
+                    Firma de autorización
+                </label>
+
+                <div class="border rounded-3 bg-white">
+                    <canvas id="firmaPad" style="width:100%; height:200px; touch-action:none; display:block;"></canvas>
+                </div>
+
+                <div class="form-text">Dibuja tu firma dentro del recuadro para autorizar la transferencia.</div>
+
+                <div class="d-flex gap-2 mt-2">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="limpiarFirma()">
+                        <i class="bi bi-eraser-fill me-1"></i> Limpiar
+                    </button>
+                    <button type="button" class="btn btn-outline-primary btn-sm" onclick="confirmarFirmaCapturada()">
+                        <i class="bi bi-check2-circle me-1"></i> Validar firma
+                    </button>
+                </div>
+
+                <input type="hidden" id="firmaBase64" name="firmaBase64" value="">
+
+            </div>
+
+            <button class="btn btn-primary">
+
+                <i class="bi bi-send-fill me-2"></i>
+
+                Enviar transferencia
+
+            </button>
+
+        </form>
+
+    </div>
+
+
+    <!-- Historial -->
+    <div class="card border-0 shadow-sm rounded-4 p-4"
+         th:if="${historialTransferencias != null}">
+
+        <h4 class="fw-bold mb-3">
+
+            <i class="bi bi-clock-history text-primary"></i>
+
+            Mis transferencias recientes
+
+        </h4>
+
+        <div class="table-responsive">
+
+            <table class="table table-hover align-middle">
+
+                <thead>
+
+                <tr>
+
+                    <th>Fecha</th>
+                    <th>Concepto</th>
+                    <th>Tipo</th>
+                    <th class="text-center">Estado</th>
+                    <th class="text-end">Monto</th>
+                    <th class="text-center">PDF</th>
+
+                </tr>
+
+                </thead>
+
+                <tbody>
+
+                <tr th:each="m : ${historialTransferencias}">
+
+                    <td
+                            th:text="${#temporals.format(m.fecha,'dd/MM/yyyy HH:mm')}">
+                    </td>
+
+                    <td
+                            th:text="${m.descripcion}">
+                    </td>
+
+                    <td>
+
+                        <span
+                                class="badge bg-primary"
+                                th:if="${m.cuentaOrigen==miClabeParaVista}">
+                            Enviada
+                        </span>
+
+                        <span
+                                class="badge bg-success"
+                                th:unless="${m.cuentaOrigen==miClabeParaVista}">
+                            Recibida
+                        </span>
+
+                    </td>
+
+                    <td class="text-center">
+                        <span class="badge rounded-pill"
+                              th:classappend="${m.estadoMovimiento == 'Cancelada'} ? 'text-bg-danger' : 'text-bg-success'"
+                              th:text="${m.estadoMovimiento}">
+                            Completado
+                        </span>
+                    </td>
+
+                    <td
+                            class="text-end fw-bold"
+                            th:classappend="${m.cuentaOrigen==miClabeParaVista}? 'text-danger':'text-success'"
+                            th:text="(${m.cuentaOrigen==miClabeParaVista} ? '-$' : '+$') + ${#numbers.formatDecimal(m.monto,1,'POINT',2,'COMMA')}">
+                    </td>
+
+                    <td class="text-center">
+
+                        <a
+                                th:href="@{'/transferencias/comprobante/'+${m.id}+'/pdf'}"
+                                target="_blank"
+                                th:classappend="${m.estadoMovimiento == 'Cancelada'} ? 'btn-outline-danger' : 'btn-outline-primary'"
+                                class="btn btn-sm"
+                                th:title="${m.estadoMovimiento == 'Cancelada'} ? 'Ver comprobante de cancelación' : 'Ver comprobante'">
+
+                            <i class="bi bi-file-earmark-pdf-fill"></i>
+
+                        </a>
+
+                    </td>
+
+                </tr>
+
+                <tr
+                        th:if="${#lists.isEmpty(historialTransferencias)}">
+
+                    <td
+                            colspan="6"
+                            class="text-center text-muted">
+
+                        Aún no tienes transferencias registradas.
+
+                    </td>
+
+                </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+    <!-- IMPORTANTE: este <script>, igual que el <style> de abajo, debe quedar
+         DENTRO de <section>, porque el layout solo inyecta lo que hace match
+         con ::section (content=~{::section}). Si se pone fuera, Thymeleaf lo
+         descarta y la firma deja de funcionar. -->
+    <script th:inline="none">
+        (function () {
+            const canvas = document.getElementById('firmaPad');
+            const ctxFirma = canvas.getContext('2d');
+
+            let isDrawing = false;
+            let trazadoRealizado = false;
+
+            function ajustarResolucionCanvas() {
+                const rect = canvas.getBoundingClientRect();
+                const ancho = rect.width || canvas.parentElement.clientWidth || 300;
+
+                canvas.width = ancho;
+                canvas.height = 200;
+
+                ctxFirma.lineWidth = 3;
+                ctxFirma.lineCap = "round";
+                ctxFirma.lineJoin = "round";
+                ctxFirma.strokeStyle = "#0d6efd";
+            }
+
+            window.addEventListener("resize", ajustarResolucionCanvas);
+            ajustarResolucionCanvas();
+
+            function obtenerCoordenadas(event) {
+                const rect = canvas.getBoundingClientRect();
+                return {
+                    x: event.clientX - rect.left,
+                    y: event.clientY - rect.top
+                };
+            }
+
+            // Mouse
+            canvas.addEventListener("mousedown", function (e) {
+                isDrawing = true;
+                const pos = obtenerCoordenadas(e);
+                ctxFirma.beginPath();
+                ctxFirma.moveTo(pos.x, pos.y);
+            });
+
+            canvas.addEventListener("mousemove", function (e) {
+                if (!isDrawing) return;
+                const pos = obtenerCoordenadas(e);
+                ctxFirma.lineTo(pos.x, pos.y);
+                ctxFirma.stroke();
+                trazadoRealizado = true;
+            });
+
+            canvas.addEventListener("mouseup", () => isDrawing = false);
+            canvas.addEventListener("mouseleave", () => isDrawing = false);
+
+            // Touch
+            canvas.addEventListener("touchstart", function (e) {
+                isDrawing = true;
+                const pos = obtenerCoordenadas(e.touches[0]);
+                ctxFirma.beginPath();
+                ctxFirma.moveTo(pos.x, pos.y);
+                e.preventDefault();
+            }, { passive: false });
+
+            canvas.addEventListener("touchmove", function (e) {
+                if (!isDrawing) return;
+                const pos = obtenerCoordenadas(e.touches[0]);
+                ctxFirma.lineTo(pos.x, pos.y);
+                ctxFirma.stroke();
+                trazadoRealizado = true;
+                e.preventDefault();
+            }, { passive: false });
+
+            canvas.addEventListener("touchend", () => isDrawing = false);
+
+            window.limpiarFirma = function () {
+                ctxFirma.clearRect(0, 0, canvas.width, canvas.height);
+                document.getElementById("firmaBase64").value = "";
+                trazadoRealizado = false;
+            };
+
+            window.confirmarFirmaCapturada = function () {
+                if (!trazadoRealizado) {
+                    alert("Primero dibuja tu firma.");
+                    return;
+                }
+                document.getElementById("firmaBase64").value = canvas.toDataURL("image/png");
+                alert("Firma validada correctamente.");
+            };
+
+            window.prepararEnvioForm = function () {
+                if (!trazadoRealizado) {
+                    alert("Debes firmar antes de enviar la transferencia.");
+                    return false;
+                }
+                document.getElementById("firmaBase64").value = canvas.toDataURL("image/png");
+                return true;
+            };
+        })();
+    </script>
+
+    <!-- IMPORTANTE: este <style> debe quedar DENTRO de <section>, ya que el
+         layout solo inyecta lo que hace match con ::section (content=~{::section}).
+         Si se pone fuera de <section>, Thymeleaf lo descarta por completo y la
+         tarjeta azul pierde su gradiente (texto blanco sobre fondo blanco =
+         se ve "vacía", aunque los datos sí lleguen del backend). -->
+    <style>
+
+    .tarjeta-cuenta{
+
+        background:linear-gradient(135deg,#00B4FF,#007BFF,#004AAD);
+
+        border-radius:25px;
+
+        overflow:hidden;
+
+        position:relative;
+
+    }
+
+    .tarjeta-cuenta::before{
+
+        content:"";
+
+        position:absolute;
+
+        width:300px;
+
+        height:300px;
+
+        border-radius:50%;
+
+        background:rgba(255,255,255,.12);
+
+        top:-120px;
+
+        right:-90px;
+
+    }
+
+    .tarjeta-cuenta::after{
+
+        content:"";
+
+        position:absolute;
+
+        width:180px;
+
+        height:180px;
+
+        border-radius:50%;
+
+        background:rgba(255,255,255,.08);
+
+        bottom:-70px;
+
+        left:-50px;
+
+    }
+
+    .tarjeta-cuenta .card-body{
+
+        position:relative;
+
+        z-index:2;
+
+    }
+
+    .tarjeta-cuenta h2{
+
+        font-size:2rem;
+
+    }
+
+    .tarjeta-cuenta h5{
+
+        letter-spacing:2px;
+
+    }
+
+    </style>
+
+</section>
+</body>
+</html>

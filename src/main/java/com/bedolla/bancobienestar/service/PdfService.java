@@ -303,6 +303,72 @@ public class PdfService {
         }
     }
 
+    /**
+     * Genera un comprobante genérico para cualquier movimiento que no tenga
+     * un PDF especializado propio (pago de servicio, vuelo, camión, hotel,
+     * evento, crédito autorizado o cancelación de crédito). Sirve como
+     * respaldo para que, desde la pantalla de "Movimientos", cualquier
+     * renglón del historial tenga un comprobante descargable.
+     */
+    public byte[] generarPdfReciboMovimiento(MovimientosEntity movimiento, CuentaEntity cuentaCliente) {
+        try {
+            Document documento = new Document();
+            ByteArrayOutputStream salida = new ByteArrayOutputStream();
+            PdfWriter.getInstance(documento, salida);
+            documento.open();
+
+            documento.add(encabezado(tituloParaTipo(movimiento.getTipo())));
+
+            PdfPTable tabla = new PdfPTable(2);
+            tabla.setWidthPercentage(100);
+            tabla.setSpacingBefore(15);
+            tabla.setWidths(new float[]{1.2f, 2f});
+
+            String nombreCliente = cuentaCliente != null && cuentaCliente.getUsuario() != null
+                    ? cuentaCliente.getUsuario().getNombre() : "N/A";
+
+            agregarFila(tabla, "Folio de operación", "#" + movimiento.getId());
+            agregarFila(tabla, "Fecha y hora", movimiento.getFecha() != null ? movimiento.getFecha().format(FMT_FECHA) : "N/A");
+            agregarFila(tabla, "Tipo de movimiento", movimiento.getTipo());
+            agregarFila(tabla, "Concepto", movimiento.getDescripcion() != null ? movimiento.getDescripcion() : "N/A");
+            agregarFila(tabla, "Monto", "$" + String.format(MX, "%,.2f", movimiento.getMonto()) + " MXN");
+            agregarFila(tabla, "Estado", movimiento.getEstadoMovimiento());
+            agregarFila(tabla, "Cliente", nombreCliente);
+            agregarFila(tabla, "Cuenta (CLABE)", cuentaCliente != null ? cuentaCliente.getClabe() : "N/A");
+
+            if ("Cancelada".equals(movimiento.getEstadoMovimiento())) {
+                agregarFila(tabla, "Cancelado por (ejecutivo)",
+                        movimiento.getCanceladoPor() != null ? movimiento.getCanceladoPor() : "N/A");
+                agregarFila(tabla, "Fecha y hora de cancelación",
+                        movimiento.getFechaCancelacion() != null ? movimiento.getFechaCancelacion().format(FMT_FECHA) : "N/A");
+            }
+
+            documento.add(tabla);
+            piePagina(documento);
+            documento.close();
+            return salida.toByteArray();
+
+        } catch (Exception e) {
+            throw new RuntimeException("No se pudo generar el comprobante PDF: " + e.getMessage(), e);
+        }
+    }
+
+    private String tituloParaTipo(String tipo) {
+        if (tipo == null) {
+            return "Comprobante de movimiento";
+        }
+        return switch (tipo) {
+            case "PAGO_SERVICIO" -> "Comprobante de pago de servicio";
+            case "VUELO" -> "Comprobante de compra de vuelo";
+            case "CAMION" -> "Comprobante de boleto de camión";
+            case "HOTEL" -> "Comprobante de reservación de hotel";
+            case "EVENTO" -> "Comprobante de boleto de evento";
+            case "CREDITO" -> "Comprobante de crédito autorizado";
+            case "CANCELACION_CREDITO" -> "Comprobante de cancelación de crédito";
+            default -> "Comprobante de movimiento";
+        };
+    }
+
     // ---------------------------------------------------------------
     // Utilidades privadas
     // ---------------------------------------------------------------
